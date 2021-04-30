@@ -14,22 +14,36 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setGame.delegate = self
-        let itemSize = UIScreen.main.bounds.width/2
-
-        let layout = UICollectionViewFlowLayout()
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        layout.itemSize = CGSize(width: itemSize, height: itemSize)
-
-        layout.minimumInteritemSpacing = 3
-        layout.minimumLineSpacing = 3
-        cardCollectionView.collectionViewLayout = layout
-        // Do any additional setup after loading the view.
     }
     override func viewDidAppear(_ animated: Bool) {
         setGame.fillDeck()
+        resizeCell()
     }
     @IBAction func dealMoreCardsTap(_ sender: Any) {
         setGame.dealThreeCards()
+    }
+    
+    func resizeCell() {
+        let temp = (CGFloat(setGame.cardsOnDeck.count) / 1.2).squareRoot()
+        let itemSize = (cardCollectionView.bounds.width - 3 * (temp - 1)) / temp
+        
+        let layout = UICollectionViewFlowLayout()
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        layout.itemSize = CGSize(width: itemSize, height: itemSize * 1.2)
+
+        layout.minimumInteritemSpacing = 3
+        layout.minimumLineSpacing = 10
+        cardCollectionView.collectionViewLayout = layout
+    }
+    
+    @IBAction func swipe(_ sender: UISwipeGestureRecognizer) {
+        if sender.direction.contains(.down) {
+            setGame.dealThreeCards()
+        }
+    }
+    @IBAction func rotate(_ sender: UIRotationGestureRecognizer) {
+        setGame.cardsOnDeck.shuffle()
+        cardCollectionView.reloadData()
     }
     
 }
@@ -43,6 +57,7 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "playingCardCell", for: indexPath) as! PlayingCardCell
         cell.cardView.card = setGame.cardsOnDeck[indexPath.row]
+        cell.cardView.addTarget(nil, action: #selector(tapCard), for: .touchUpInside)
         return cell
     }
     
@@ -57,9 +72,11 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
 extension ViewController : SetGameDelegate {
     func setGame(_ setGame: SetGame, putCard: PlayingCard) {
         cardCollectionView.reloadData()
+        resizeCell()
     }
     func setGame(_ setGame: SetGame, removeCard: PlayingCard) {
         cardCollectionView.reloadData()
+        resizeCell()
     }
 }
 

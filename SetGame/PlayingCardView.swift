@@ -7,44 +7,19 @@
 
 import UIKit
 @IBDesignable
-class PlayingCardView: UIButton {
+class PlayingCardView: UIControl {
 
     var card : PlayingCard? {
         didSet {
+            setNeedsDisplay()
             card?.delegate = self
-            updateViewFromModel()
-        }
-    }
-    func updateViewFromModel() {
-        layer.cornerRadius = 10
-        if card != nil {
-            backgroundColor = UIColor.lightGray
-        } else {
-            backgroundColor = UIColor.white.withAlphaComponent(0)
-        }
-        
-        updateBorderFromModel()
-    }
-    func updateBorderFromModel() {
-        if card != nil && card!.isSelected == true {
-            layer.borderWidth = 6
-        } else {
-            layer.borderWidth = 0
-        }
-        if let isSetCard = card?.isSetCard {
-            if isSetCard {
-                layer.borderColor = UIColor.green.cgColor
-            } else {
-                layer.borderColor = UIColor.red.cgColor
-            }
-        }
-        else {
-            layer.borderColor = UIColor.black.cgColor
         }
     }
     override func draw(_ rect: CGRect) {
         super.draw(rect)
-        
+        layer.cornerRadius = 10
+        layer.borderWidth = 10
+        layer.borderColor = UIColor.red.cgColor
         if let card = card {
             
             var drawFigur: (UIBezierPath, CGRect) -> () = drawOval
@@ -71,16 +46,18 @@ class PlayingCardView: UIButton {
             
             var drawRect: [CGRect] = []
             
+            let heightFigure: CGFloat = 1.5 / 7
+            
             switch card.quantity {
             case .one:
-                drawRect.append(CGRect(x: 10, y: (2.5 / 7) * rect.height, width: rect.width - 20, height: rect.height * 2 / 7))
+                drawRect.append(CGRect(x: 10, y: (1 / 2 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
             case .two:
-                drawRect.append(CGRect(x: 10, y: (1.5 / 7) * rect.height - 2.5, width: rect.width - 20, height: rect.height * 2 / 7))
-                drawRect.append(CGRect(x: 10, y: (1/2) * rect.height + 2.5, width: rect.width - 20, height: rect.height * 2 / 7))
+                drawRect.append(CGRect(x: 10, y: (1 / 3 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
+                drawRect.append(CGRect(x: 10, y: (2 / 3 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
             case .three:
-                drawRect.append(CGRect(x: 10, y: (0.5 / 7) * rect.height - 5, width: rect.width - 20, height: rect.height * 2 / 7))
-                drawRect.append(CGRect(x: 10, y: (5 / 14) * rect.height, width: rect.width - 20, height: rect.height * 2 / 7))
-                drawRect.append(CGRect(x: 10, y: (9 / 14) * rect.height + 5, width: rect.width - 20, height: rect.height * 2 / 7))
+                drawRect.append(CGRect(x: 10, y: (1 / 4 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
+                drawRect.append(CGRect(x: 10, y: (2 / 4 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
+                drawRect.append(CGRect(x: 10, y: (3 / 4 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
             }
             
             var isFill = false
@@ -95,11 +72,29 @@ class PlayingCardView: UIButton {
                 isFill = false
                 isStriped = false
             }
+            
+            if card.isSelected {
+                layer.borderWidth = 6
+            } else {
+                layer.borderWidth = 0
+            }
+            
+            if let isSet = card.isSetCard {
+                if isSet {
+                    layer.borderColor = UIColor.green.cgColor
+                } else {
+                    layer.borderColor = UIColor.red.cgColor
+                }
+            } else {
+                layer.borderColor = UIColor.black.cgColor
+            }
+            
             let path = UIBezierPath()
             for rect in drawRect {
                 drawFigur(path,rect)
             }
             drawPath(path, color: color, isFill: isFill, isStriped: isStriped)
+            
         }
     }
     
@@ -129,7 +124,6 @@ class PlayingCardView: UIButton {
     
     func shading(_ path: UIBezierPath, color: UIColor) {
         let bounds = path.bounds
-        print(path.bounds)
 
         let stripes = UIBezierPath()
         for x in stride(from: 0, to: bounds.size.width, by: 3){
@@ -160,10 +154,10 @@ class PlayingCardView: UIButton {
 
 extension PlayingCardView : PlayingCardDelegate {
     func playingCard(_ card: PlayingCard, newValueIsSelected: Bool) {
-        updateBorderFromModel()
+        setNeedsDisplay()
     }
     func playingCard(_ card: PlayingCard, newValueIsSetCard: Bool?) {
-        updateBorderFromModel()
+        setNeedsDisplay()
     }
     
     

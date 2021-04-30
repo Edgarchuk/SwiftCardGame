@@ -9,7 +9,7 @@ import UIKit
 
 class SetGame{
     let startNumberCards = 12
-    let maxCardsOnDeck = 24
+    let maxCardsOnDeck = 81
     
     private var cards : [PlayingCard] = []
     var cardsOnDeck : [PlayingCard] = []
