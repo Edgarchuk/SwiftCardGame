@@ -8,18 +8,24 @@
 import UIKit
 @IBDesignable
 class PlayingCardView: UIControl {
-
+    
+    let figureLayer = CAShapeLayer()
+    
     var card : PlayingCard? {
         didSet {
-            setNeedsDisplay()
+            updateBorder()
+            drawCard(rect: layer.frame)
             card?.delegate = self
         }
     }
-    override func draw(_ rect: CGRect) {
-        super.draw(rect)
-        layer.cornerRadius = 10
-        layer.borderWidth = 10
-        layer.borderColor = UIColor.red.cgColor
+    
+    override var bounds: CGRect {
+        didSet {
+            drawCard(rect: bounds)
+        }
+    }
+    
+    func drawCard(rect: CGRect) {
         if let card = card {
             
             var drawFigur: (UIBezierPath, CGRect) -> () = drawOval
@@ -46,18 +52,18 @@ class PlayingCardView: UIControl {
             
             var drawRect: [CGRect] = []
             
-            let heightFigure: CGFloat = 1.5 / 7
+            let relativeHeightFigure: CGFloat = 1.5 / 7
             
             switch card.quantity {
             case .one:
-                drawRect.append(CGRect(x: 10, y: (1 / 2 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
+                drawRect.append(CGRect(x: 10, y: (1 / 2 - relativeHeightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * relativeHeightFigure))
             case .two:
-                drawRect.append(CGRect(x: 10, y: (1 / 3 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
-                drawRect.append(CGRect(x: 10, y: (2 / 3 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
+                drawRect.append(CGRect(x: 10, y: (1 / 3 - relativeHeightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * relativeHeightFigure))
+                drawRect.append(CGRect(x: 10, y: (2 / 3 - relativeHeightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * relativeHeightFigure))
             case .three:
-                drawRect.append(CGRect(x: 10, y: (1 / 4 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
-                drawRect.append(CGRect(x: 10, y: (2 / 4 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
-                drawRect.append(CGRect(x: 10, y: (3 / 4 - heightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * heightFigure))
+                drawRect.append(CGRect(x: 10, y: (1 / 4 - relativeHeightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * relativeHeightFigure))
+                drawRect.append(CGRect(x: 10, y: (2 / 4 - relativeHeightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * relativeHeightFigure))
+                drawRect.append(CGRect(x: 10, y: (3 / 4 - relativeHeightFigure / 2) * rect.height, width: rect.width - 20, height: rect.height * relativeHeightFigure))
             }
             
             var isFill = false
@@ -73,39 +79,69 @@ class PlayingCardView: UIControl {
                 isStriped = false
             }
             
-            if card.isSelected {
-                layer.borderWidth = 6
-            } else {
-                layer.borderWidth = 0
-            }
-            
-            if let isSet = card.isSetCard {
-                if isSet {
-                    layer.borderColor = UIColor.green.cgColor
-                } else {
-                    layer.borderColor = UIColor.red.cgColor
-                }
-            } else {
-                layer.borderColor = UIColor.black.cgColor
-            }
             
             let path = UIBezierPath()
             for rect in drawRect {
                 drawFigur(path,rect)
             }
-            drawPath(path, color: color, isFill: isFill, isStriped: isStriped)
+            
+            
+            let mask = CAShapeLayer()
+            mask.path = path.cgPath
+            
+            if isStriped {
+                shadingPath(path)
+            }
+            
+            figureLayer.path = path.cgPath
+            figureLayer.mask = mask
+            figureLayer.lineWidth = 1
+            if !isFill {
+                figureLayer.fillColor = backgroundColor!.cgColor
+            } else {
+                figureLayer.fillColor = color.cgColor
+            }
+            figureLayer.strokeColor = color.cgColor
+            
+            
+            
+            layer.addSublayer(figureLayer)
+            setNeedsDisplay()
             
         }
     }
+    private func updateBorder() {
+        layer.cornerRadius = 10
+        
+        guard let card = card else {
+            return
+        }
+        if card.isSelected {
+            layer.borderWidth = bounds.width * 0.05
+        } else {
+            layer.borderWidth = 0
+        }
+        
+        if let isSet = card.isSetCard {
+            if isSet {
+                layer.borderColor = UIColor.green.cgColor
+            } else {
+                layer.borderColor = UIColor.red.cgColor
+            }
+        } else {
+            layer.borderColor = UIColor.black.cgColor
+        }
+    }
+
     
-    func draw​Squiggles (path: UIBezierPath, rect: CGRect) {
+    private func draw​Squiggles (path: UIBezierPath, rect: CGRect) {
         path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
         path.addCurve(to: CGPoint(x: rect.maxX, y: rect.minY), controlPoint1: CGPoint(x:rect.minX + rect.width / 4, y: rect.minY - rect.height / 2), controlPoint2: CGPoint(x: rect.midX, y: rect.midY))
         path.addCurve(to: CGPoint(x: rect.minX, y: rect.maxY), controlPoint1: CGPoint(x:rect.maxX - rect.width / 4, y: rect.maxY + rect.height / 2), controlPoint2: CGPoint(x: rect.midX, y: rect.midY))
         
     }
     
-    func drawOval(path: UIBezierPath, rect: CGRect) {
+    private func drawOval(path: UIBezierPath, rect: CGRect) {
         path.move(to: CGPoint(x: rect.minX, y: rect.midY))
         path.addQuadCurve(to: CGPoint(x: rect.midX, y: rect.minY), controlPoint: CGPoint(x: rect.minX, y: rect.minY))
         path.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.midY), controlPoint: CGPoint(x: rect.maxX, y: rect.minY))
@@ -114,7 +150,7 @@ class PlayingCardView: UIControl {
         
     }
     
-    func drawDiamonds(path: UIBezierPath, rect: CGRect){
+    private func drawDiamonds(path: UIBezierPath, rect: CGRect){
         path.move(to: CGPoint (x: rect.minX, y: rect.midY))
         path.addLine(to: CGPoint(x: rect.midX, y: rect.minY))
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
@@ -122,7 +158,7 @@ class PlayingCardView: UIControl {
         path.close()
     }
     
-    func shading(_ path: UIBezierPath, color: UIColor) {
+    private func shadingPath(_ path: UIBezierPath) {
         let bounds = path.bounds
 
         let stripes = UIBezierPath()
@@ -130,34 +166,18 @@ class PlayingCardView: UIControl {
             stripes.move(to: CGPoint(x: bounds.origin.x + x, y: bounds.origin.y ))
             stripes.addLine(to: CGPoint(x: bounds.origin.x + x, y: bounds.origin.y + bounds.size.height ))
         }
-        
-        color.setStroke()
-        stripes.lineWidth = 1
-        path.addClip()
-        stripes.stroke()
-    }
-    func drawPath(_ path: UIBezierPath, color: UIColor, isFill: Bool, isStriped: Bool) {
-        if isStriped
-        {
-            shading(path, color: color)
-        }
-        if isFill {
-            color.setFill()
-            path.fill()
-            return
-        }
-        color.setStroke()
-        path.stroke()
+        path.append(stripes)
     }
     
 }
 
 extension PlayingCardView : PlayingCardDelegate {
     func playingCard(_ card: PlayingCard, newValueIsSelected: Bool) {
-        setNeedsDisplay()
+        updateBorder()
     }
     func playingCard(_ card: PlayingCard, newValueIsSetCard: Bool?) {
-        setNeedsDisplay()
+        updateBorder()
+        
     }
     
     

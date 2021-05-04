@@ -17,6 +17,18 @@ class SetGame{
     weak var delegate: SetGameDelegate?
     
     init() {
+        fillCards()
+    }
+    
+    func newGame(){
+        selectedCard.removeAll()
+        cardsOnDeck.removeAll()
+        fillCards()
+        putCardOnDeck(cardsCount: startNumberCards)
+    }
+    
+    private func fillCards() {
+        cards.removeAll()
         for figure in PlayingCard.Figure.allCases {
             for color in PlayingCard.Color.allCases {
                 for transparency in PlayingCard.Texture.allCases {
@@ -29,16 +41,14 @@ class SetGame{
     }
     
     func fillDeck() {
-        for _ in 0..<startNumberCards {
-            putCardOnDeck()
-        }
+        putCardOnDeck(cardsCount: startNumberCards)
     }
     
     private func putCardOnDeck() {
         if let card = cards.randomElement() {
             cards = cards.filter({$0 != card})
             cardsOnDeck.append(card)
-            delegate?.setGame(self, putCard: card)
+            delegate?.setGame(self, putCardIndex: cardsOnDeck.count - 1)
         }
     }
     func selectCard(card: PlayingCard) {
@@ -49,6 +59,9 @@ class SetGame{
         
         if selectedCard.contains(card) {
             if selectedCard.count == 3 {
+                deleteSelection()
+                card.isSelected = true
+                selectedCard.append(card)
                 return
             }
             card.isSelected = false
@@ -82,8 +95,10 @@ class SetGame{
         if cardsOnDeck.contains(card) == false {
             return
         }
+        let index = Int(cardsOnDeck.firstIndex(of: card)!)
+        delegate?.setGame(self, willRemoveCardIndex: index)
         cardsOnDeck = cardsOnDeck.filter({$0 != card})
-        delegate?.setGame(self, removeCard: card)
+        delegate?.setGame(self, didRemoveCardIndex: index)
     }
     private func set(first: PlayingCard, second: PlayingCard, third: PlayingCard) -> Bool {
         var count = 0
@@ -109,7 +124,7 @@ class SetGame{
         }
         return count == 4
     }
-    func selectedCardIsSet() -> Bool {
+    private func selectedCardIsSet() -> Bool {
         return set(first: selectedCard[0], second: selectedCard[1], third: selectedCard[2])
     }
     func dealThreeCards() {
@@ -127,7 +142,7 @@ class SetGame{
         putCardOnDeck(cardsCount: 3)
     }
     
-    func removeSelectedCards() {
+    private func removeSelectedCards() {
         for card in selectedCard {
             removeCardFromDeck(card: card)
         }
@@ -147,7 +162,8 @@ class SetGame{
 }
 
 protocol SetGameDelegate: class {
-    func setGame(_ setGame: SetGame, putCard: PlayingCard)
-    func setGame(_ setGame: SetGame, removeCard: PlayingCard)
+    func setGame(_ setGame: SetGame, putCardIndex indexCard: Int)
+    func setGame(_ setGame: SetGame, willRemoveCardIndex indexCard: Int)
+    func setGame(_ setGame: SetGame, didRemoveCardIndex indexCard: Int)
 }
 
