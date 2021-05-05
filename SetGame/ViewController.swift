@@ -48,18 +48,21 @@ class ViewController: UIViewController {
         return Int((Double(cardCollectionView.bounds.width) - spacing) / (size + spacing)) * Int((Double(cardCollectionView.bounds.height) - spacing) / (size * relativeSize + spacing)) >= setGame.cardsOnDeck.count
     }
     
-    
-    let layout = UICollectionViewFlowLayout()
-    
+    var lastItemSize = 0.0
     func resizeCell() {
-        
+        let layout = UICollectionViewFlowLayout()
         let itemSize = getSizeCell(left: 1, right: Double(cardCollectionView.bounds.width))
         layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         layout.itemSize = CGSize(width: itemSize, height: itemSize * relativeSize)
 
         layout.minimumInteritemSpacing = CGFloat(spacing)
         layout.minimumLineSpacing = CGFloat(spacing)
-        cardCollectionView.setCollectionViewLayout(layout, animated: true)
+        if Int(lastItemSize) != Int(itemSize) {
+            //print(itemSize)
+            cardCollectionView.reloadData()
+            cardCollectionView.setCollectionViewLayout(layout, animated: true)
+        }
+        lastItemSize = itemSize
     }
     
     @IBAction func swipe(_ sender: UISwipeGestureRecognizer) {
@@ -68,7 +71,7 @@ class ViewController: UIViewController {
         }
     }
     @IBAction func rotate(_ sender: UIRotationGestureRecognizer) {
-        setGame.cardsOnDeck.shuffle()
+        //setGame.cardsOnDeck.shuffle()
         DispatchQueue.main.async { [self] in
             cardCollectionView.reloadData()
         }
@@ -87,28 +90,39 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "playingCardCell", for: indexPath) as! PlayingCardCell
-        cell.cardView.card = setGame.cardsOnDeck[indexPath.row]
-        cell.cardView.addTarget(nil, action: #selector(tapCard), for: .touchUpInside)
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        guard let cell = cell as? PlayingCardCell else {
+            //print("cell is nil")
+            return
+        }
+        
+        cell.cardView.card = setGame.cardsOnDeck[indexPath.row]
+        cell.cardView.addTarget(nil, action: #selector(tapCard), for: .touchUpInside)
+        
         if needAddAnimatedCards.contains(indexPath) {
             needAddAnimatedCards = needAddAnimatedCards.filter({$0 != indexPath})
             
-            let movingCard = UIView()
+            let movingCard = UIView(frame: cell.frame)
             movingCard.backgroundColor = UIColor.link
             movingCard.layer.cornerRadius = 10
-            movingCard.bounds = cell.bounds
             movingCard.center = dealMoreCardsButton.center
             view.addSubview(movingCard)
             cell.alpha = 0
-            UIView.animate(withDuration: 2,delay: 0.0, options: .curveEaseOut) {
-                movingCard.center = cell.center
+            dealMoreCardsButton.isEnabled = false
+            let target = self.cardCollectionView.convert(cell.center, to: self.view)
+            UIView.animate(withDuration: 0.5,delay: 0.0, options: .curveEaseOut) {
+                movingCard.center = target
+                //movingCard.center = CGPoint(x: cell.center.x + 20, y: cell.center.y + 64)
             } completion: { (_) in
                 cell.alpha = 1
                 movingCard.removeFromSuperview()
+                self.dealMoreCardsButton.isEnabled = true
             }
+        } else {
+            print(indexPath," is not animeted")
         }
         
         if needDeleteAnimatadCards.contains(indexPath) {
@@ -117,13 +131,13 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
             let movingCard = UIView()
             movingCard.backgroundColor = UIColor.link
             movingCard.layer.cornerRadius = 10
-            movingCard.frame = cell.frame
+            movingCard.bounds = cell.bounds
+            movingCard.center = self.cardCollectionView.convert(cell.center, to: self.view)
             view.addSubview(movingCard)
-            cell.alpha = 0
-            UIView.animate(withDuration: 2,delay: 0.0, options: .curveEaseOut) {
-                movingCard.center = CGPoint(x: movingCard.center.x, y: movingCard.center.y + movingCard.frame.width)
+            UIView.animate(withDuration: 1,delay: 0.0, options: .curveEaseIn) {
+                let center = self.cardCollectionView.convert(cell.center, to: self.view)
+                movingCard.center = CGPoint(x: center.x + self.cardCollectionView.bounds.width, y: center.y)
             } completion: { (_) in
-                cell.alpha = 1
                 movingCard.removeFromSuperview()
             }
         }
@@ -139,11 +153,15 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
 
 extension ViewController : SetGameDelegate {
     func setGame(_ setGame: SetGame, putCardIndex indexCard: Int) {
-        resizeCell()
+        
         let index = IndexPath(row: indexCard, section: 0)
         needAddAnimatedCards.append(index)
+        print("add ", index, " to needAddAnimatedCards")
+        
         DispatchQueue.main.async { [self] in
+            print(index, " reloadData")
             cardCollectionView.insertItems(at: [index])
+            resizeCell()
         }
     }
     func setGame(_ setGame: SetGame, willRemoveCardIndex indexCard: Int) {
@@ -151,16 +169,20 @@ extension ViewController : SetGameDelegate {
         needDeleteAnimatadCards.append(index)
         DispatchQueue.main.async { [self] in
             cardCollectionView.reloadItems(at: [index])
+            //cardCollectionView.reloadData()
         }
     }
+    
     func setGame(_ setGame: SetGame, didRemoveCardIndex indexCard: Int) {
-        resizeCell()
-        let index = IndexPath(row: indexCard, section: 0)
         
+        let index = IndexPath(row: indexCard, section: 0)
         DispatchQueue.main.async { [self] in
+            //cardCollectionView.reloadItems(at: [index])
             cardCollectionView.deleteItems(at: [index])
         }
+        resizeCell()
     }
 }
+
 
 

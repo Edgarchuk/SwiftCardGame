@@ -83,6 +83,8 @@ class SetGame{
                 for card in selectedCard {
                     card.isSetCard = true
                 }
+                removeSelectedCards()
+                putCardOnDeck(cardsCount: 3)
             } else {
                 for card in selectedCard {
                     card.isSetCard = false
