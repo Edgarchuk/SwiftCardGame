@@ -8,11 +8,14 @@
 import UIKit
 @IBDesignable
 class PlayingCardView: UIControl {
+
+    
     
     let figureLayer = CAShapeLayer()
     
     var card : PlayingCard? {
         didSet {
+            backgroundColor = .link
             updateBorder()
             drawCard(rect: layer.frame)
             card?.delegate = self

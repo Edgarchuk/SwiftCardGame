@@ -6,7 +6,11 @@
 //
 import UIKit
 
-class PlayingCard: Equatable {
+class PlayingCard: Equatable, NSCopying {
+    func copy(with zone: NSZone? = nil) -> Any {
+        return PlayingCard(figure: figure, color: color, transpatenty: texture, quantity: quantity)
+    }
+    
     static func == (lhs: PlayingCard, rhs: PlayingCard) -> Bool {
         var flag = true
         if lhs.figure != rhs.figure {
@@ -26,12 +30,11 @@ class PlayingCard: Equatable {
     
 
 
-    internal init(figure: PlayingCard.Figure = .diamonds, color: PlayingCard.Color = .purple, transpatenty: PlayingCard.Texture = .striped, quantity: PlayingCard.Quantity = .one, isSelected: Bool = false) {
+    internal init(figure: PlayingCard.Figure = .diamonds, color: PlayingCard.Color = .purple, transpatenty: PlayingCard.Texture = .striped, quantity: PlayingCard.Quantity = .one) {
         self.figure = figure
         self.color = color
         self.texture = transpatenty
         self.quantity = quantity
-        self.isSelected = isSelected
     }
     
     var figure : Figure

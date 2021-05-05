@@ -10,14 +10,19 @@ import UIKit
 class ViewController: UIViewController {
     @IBOutlet weak var cardCollectionView: UICollectionView!
     @IBOutlet weak var dealMoreCardsButton: UIButton!
+    @IBOutlet weak var deletedCard: PlayingCardView!
     let setGame: SetGame = .init()
     var needAddAnimatedCards: [IndexPath] = []
     var needDeleteAnimatadCards: [IndexPath] = []
-
+    var cards: [PlayingCard] = []
+    var lastDeletedCard: PlayingCard!
+    
+    var animator: UIDynamicAnimator!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setGame.delegate = self
+        animator = UIDynamicAnimator(referenceView: view)
     }
     override func viewDidAppear(_ animated: Bool) {
         setGame.fillDeck()
@@ -48,8 +53,8 @@ class ViewController: UIViewController {
         return Int((Double(cardCollectionView.bounds.width) - spacing) / (size + spacing)) * Int((Double(cardCollectionView.bounds.height) - spacing) / (size * relativeSize + spacing)) >= setGame.cardsOnDeck.count
     }
     
-    var lastItemSize = 0.0
-    func resizeCell() {
+    private var lastItemSize = 0.0
+    private func resizeCell(completion: @escaping (Bool) -> () = {_ in }) {
         let layout = UICollectionViewFlowLayout()
         let itemSize = getSizeCell(left: 1, right: Double(cardCollectionView.bounds.width))
         layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
@@ -59,8 +64,10 @@ class ViewController: UIViewController {
         layout.minimumLineSpacing = CGFloat(spacing)
         if Int(lastItemSize) != Int(itemSize) {
             //print(itemSize)
-            cardCollectionView.reloadData()
-            cardCollectionView.setCollectionViewLayout(layout, animated: true)
+            cardCollectionView.setCollectionViewLayout(layout, animated: true, completion: completion)
+        }
+        else {
+            completion(true)
         }
         lastItemSize = itemSize
     }
@@ -71,7 +78,8 @@ class ViewController: UIViewController {
         }
     }
     @IBAction func rotate(_ sender: UIRotationGestureRecognizer) {
-        //setGame.cardsOnDeck.shuffle()
+        setGame.cardsOnDeck.shuffle()
+        cards = setGame.cardsOnDeck
         DispatchQueue.main.async { [self] in
             cardCollectionView.reloadData()
         }
@@ -79,13 +87,12 @@ class ViewController: UIViewController {
     @IBAction func newGame(_ sender: Any) {
         setGame.newGame()
     }
-    
 }
 
 extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return setGame.cardsOnDeck.count
+        return cards.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -99,7 +106,7 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
             return
         }
         
-        cell.cardView.card = setGame.cardsOnDeck[indexPath.row]
+        cell.cardView.card = cards[indexPath.row]
         cell.cardView.addTarget(nil, action: #selector(tapCard), for: .touchUpInside)
         
         if needAddAnimatedCards.contains(indexPath) {
@@ -112,9 +119,10 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
             view.addSubview(movingCard)
             cell.alpha = 0
             dealMoreCardsButton.isEnabled = false
-            let target = self.cardCollectionView.convert(cell.center, to: self.view)
+            //print(target, cell.frame)
             UIView.animate(withDuration: 0.5,delay: 0.0, options: .curveEaseOut) {
-                movingCard.center = target
+                movingCard.center = self.cardCollectionView.convert(cell.center, to: self.view)
+                movingCard.bounds = cell.bounds
                 //movingCard.center = CGPoint(x: cell.center.x + 20, y: cell.center.y + 64)
             } completion: { (_) in
                 cell.alpha = 1
@@ -122,7 +130,7 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
                 self.dealMoreCardsButton.isEnabled = true
             }
         } else {
-            print(indexPath," is not animeted")
+            //print(indexPath," is not animeted")
         }
         
         if needDeleteAnimatadCards.contains(indexPath) {
@@ -134,12 +142,33 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
             movingCard.bounds = cell.bounds
             movingCard.center = self.cardCollectionView.convert(cell.center, to: self.view)
             view.addSubview(movingCard)
-            UIView.animate(withDuration: 1,delay: 0.0, options: .curveEaseIn) {
-                let center = self.cardCollectionView.convert(cell.center, to: self.view)
-                movingCard.center = CGPoint(x: center.x + self.cardCollectionView.bounds.width, y: center.y)
-            } completion: { (_) in
-                movingCard.removeFromSuperview()
-            }
+            let gravity = UIGravityBehavior(items: [movingCard])
+            animator.addBehavior(gravity)
+            let collision = UICollisionBehavior(items: [movingCard])
+            collision.translatesReferenceBoundsIntoBoundary = true
+            animator.addBehavior(collision)
+            let itemBehaviour = UIDynamicItemBehavior(items: [movingCard])
+            itemBehaviour.elasticity = 0.7
+            animator.addBehavior(itemBehaviour)
+            let card = lastDeletedCard
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(4), execute: { [self] in
+                animator.removeBehavior(gravity)
+                animator.removeBehavior(collision)
+                animator.removeBehavior(itemBehaviour)
+                UIView.animate(withDuration: 1,delay: 0.0, options: .curveEaseIn) {
+                    movingCard.frame = deletedCard.frame
+                } completion: { (_) in
+                    movingCard.removeFromSuperview()
+                    deletedCard.card = card
+                }
+            })
+            
+//            UIView.animate(withDuration: 1,delay: 0.0, options: .curveEaseIn) {
+//                let center = self.cardCollectionView.convert(cell.center, to: self.view)
+//                movingCard.center = CGPoint(x: center.x + self.cardCollectionView.bounds.width, y: center.y)
+//            } completion: { (_) in
+//                movingCard.removeFromSuperview()
+//            }
         }
     }
     
@@ -152,35 +181,25 @@ extension ViewController : UICollectionViewDataSource, UICollectionViewDelegate 
 }
 
 extension ViewController : SetGameDelegate {
-    func setGame(_ setGame: SetGame, putCardIndex indexCard: Int) {
-        
+    func setGame(_ setGame: SetGame, willPutCardIndex indexCard: Int) {
         let index = IndexPath(row: indexCard, section: 0)
         needAddAnimatedCards.append(index)
-        print("add ", index, " to needAddAnimatedCards")
+        //print("add ", index, " to needAddAnimatedCards")
         
-        DispatchQueue.main.async { [self] in
-            print(index, " reloadData")
-            cardCollectionView.insertItems(at: [index])
-            resizeCell()
-        }
     }
     func setGame(_ setGame: SetGame, willRemoveCardIndex indexCard: Int) {
         let index = IndexPath(row: indexCard, section: 0)
         needDeleteAnimatadCards.append(index)
-        DispatchQueue.main.async { [self] in
-            cardCollectionView.reloadItems(at: [index])
-            //cardCollectionView.reloadData()
-        }
+        lastDeletedCard = setGame.cardsOnDeck[indexCard]
     }
     
-    func setGame(_ setGame: SetGame, didRemoveCardIndex indexCard: Int) {
-        
-        let index = IndexPath(row: indexCard, section: 0)
-        DispatchQueue.main.async { [self] in
-            //cardCollectionView.reloadItems(at: [index])
-            cardCollectionView.deleteItems(at: [index])
+    func update() {
+        resizeCell() { [self] _ in
+            cards = setGame.cardsOnDeck
+            DispatchQueue.main.async {
+                self.cardCollectionView.reloadData()
+            }
         }
-        resizeCell()
     }
 }
 

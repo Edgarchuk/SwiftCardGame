@@ -17,6 +17,11 @@
 		41395B782638292B004E22D0 /* PlayingCardCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41395B772638292B004E22D0 /* PlayingCardCell.swift */; };
 		41395B7B26382E2C004E22D0 /* SetGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41395B7A26382E2C004E22D0 /* SetGame.swift */; };
 		41395B7E26383A24004E22D0 /* PlayingCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41395B7D26383A24004E22D0 /* PlayingCardView.swift */; };
+		41B324D42642CC1000250367 /* ConcentrationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41B324D32642CC1000250367 /* ConcentrationViewController.swift */; };
+		41B324DE2642CC7500250367 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41B324DA2642CC7400250367 /* Card.swift */; };
+		41B324DF2642CC7500250367 /* Concentration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41B324DB2642CC7400250367 /* Concentration.swift */; };
+		41B324E02642CC7500250367 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41B324DC2642CC7500250367 /* Theme.swift */; };
+		41B324E42642CCBC00250367 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41B324E32642CCBC00250367 /* Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +37,11 @@
 		41395B772638292B004E22D0 /* PlayingCardCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayingCardCell.swift; sourceTree = "<group>"; };
 		41395B7A26382E2C004E22D0 /* SetGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetGame.swift; sourceTree = "<group>"; };
 		41395B7D26383A24004E22D0 /* PlayingCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayingCardView.swift; sourceTree = "<group>"; };
+		41B324D32642CC1000250367 /* ConcentrationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConcentrationViewController.swift; sourceTree = "<group>"; };
+		41B324DA2642CC7400250367 /* Card.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Card.swift; path = ../../LearningEdgar/LearningEdgar/Card.swift; sourceTree = "<group>"; };
+		41B324DB2642CC7400250367 /* Concentration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Concentration.swift; path = ../../LearningEdgar/LearningEdgar/Concentration.swift; sourceTree = "<group>"; };
+		41B324DC2642CC7500250367 /* Theme.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Theme.swift; path = ../../LearningEdgar/LearningEdgar/Theme.swift; sourceTree = "<group>"; };
+		41B324E32642CCBC00250367 /* Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Extension.swift; path = ../../../../.Trash/Extension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +74,10 @@
 		41395B5B2637FB2F004E22D0 /* SetGame */ = {
 			isa = PBXGroup;
 			children = (
+				41B324E32642CCBC00250367 /* Extension.swift */,
+				41B324DA2642CC7400250367 /* Card.swift */,
+				41B324DB2642CC7400250367 /* Concentration.swift */,
+				41B324DC2642CC7500250367 /* Theme.swift */,
 				41395B5C2637FB2F004E22D0 /* AppDelegate.swift */,
 				41395B5E2637FB2F004E22D0 /* SceneDelegate.swift */,
 				41395B602637FB2F004E22D0 /* ViewController.swift */,
@@ -75,6 +89,7 @@
 				41395B772638292B004E22D0 /* PlayingCardCell.swift */,
 				41395B7A26382E2C004E22D0 /* SetGame.swift */,
 				41395B7D26383A24004E22D0 /* PlayingCardView.swift */,
+				41B324D32642CC1000250367 /* ConcentrationViewController.swift */,
 			);
 			path = SetGame;
 			sourceTree = "<group>";
@@ -152,10 +167,15 @@
 				41395B612637FB2F004E22D0 /* ViewController.swift in Sources */,
 				41395B7E26383A24004E22D0 /* PlayingCardView.swift in Sources */,
 				41395B5D2637FB2F004E22D0 /* AppDelegate.swift in Sources */,
+				41B324E42642CCBC00250367 /* Extension.swift in Sources */,
+				41B324E02642CC7500250367 /* Theme.swift in Sources */,
 				41395B752638045B004E22D0 /* PlayingCard.swift in Sources */,
+				41B324DF2642CC7500250367 /* Concentration.swift in Sources */,
 				41395B782638292B004E22D0 /* PlayingCardCell.swift in Sources */,
 				41395B7B26382E2C004E22D0 /* SetGame.swift in Sources */,
+				41B324D42642CC1000250367 /* ConcentrationViewController.swift in Sources */,
 				41395B5F2637FB2F004E22D0 /* SceneDelegate.swift in Sources */,
+				41B324DE2642CC7500250367 /* Card.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

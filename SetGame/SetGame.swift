@@ -24,7 +24,7 @@ class SetGame{
         selectedCard.removeAll()
         cardsOnDeck.removeAll()
         fillCards()
-        putCardOnDeck(cardsCount: startNumberCards)
+        fillDeck()
     }
     
     private func fillCards() {
@@ -41,6 +41,9 @@ class SetGame{
     }
     
     func fillDeck() {
+        if cardsOnDeck.count != 0 {
+            return
+        }
         putCardOnDeck(cardsCount: startNumberCards)
     }
     
@@ -48,7 +51,7 @@ class SetGame{
         if let card = cards.randomElement() {
             cards = cards.filter({$0 != card})
             cardsOnDeck.append(card)
-            delegate?.setGame(self, putCardIndex: cardsOnDeck.count - 1)
+            delegate?.setGame(self, willPutCardIndex: cardsOnDeck.count - 1)
         }
     }
     func selectCard(card: PlayingCard) {
@@ -100,7 +103,6 @@ class SetGame{
         let index = Int(cardsOnDeck.firstIndex(of: card)!)
         delegate?.setGame(self, willRemoveCardIndex: index)
         cardsOnDeck = cardsOnDeck.filter({$0 != card})
-        delegate?.setGame(self, didRemoveCardIndex: index)
     }
     private func set(first: PlayingCard, second: PlayingCard, third: PlayingCard) -> Bool {
         var count = 0
@@ -149,12 +151,14 @@ class SetGame{
             removeCardFromDeck(card: card)
         }
         selectedCard.removeAll()
+        delegate?.update()
     }
     
     private func putCardOnDeck(cardsCount: Int) {
         for _ in 0..<cardsCount {
             putCardOnDeck()
         }
+        delegate?.update()
     }
     
     private func deleteSelection() {
@@ -164,8 +168,8 @@ class SetGame{
 }
 
 protocol SetGameDelegate: class {
-    func setGame(_ setGame: SetGame, putCardIndex indexCard: Int)
+    func setGame(_ setGame: SetGame, willPutCardIndex indexCard: Int)
     func setGame(_ setGame: SetGame, willRemoveCardIndex indexCard: Int)
-    func setGame(_ setGame: SetGame, didRemoveCardIndex indexCard: Int)
+    func update()
 }
 
